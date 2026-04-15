@@ -51,3 +51,16 @@ A full-stack application built for the Ergosphere assignment. It features automa
 - `backend/`: Django REST project.
 - `frontend/`: Vite + React + Tailwind CSS project.
 - `scraper/`: Selenium automation scripts.
+- `screenshots/`: Project visuals.
+
+## 📸 Screenshots
+
+### 🧠 Intelligent Q&A Interface
+![QA Interface](screenshots/qa_interface.png)
+
+### 📚 Document Discovery Feed
+![Feed Top](screenshots/feed_top.png)
+![Feed Bottom](screenshots/feed_bottom.png)
+
+### 🌐 Data Source (Books to Scrape)
+![Source Site](screenshots/source_site.png)
