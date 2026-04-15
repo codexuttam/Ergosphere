@@ -32,16 +32,32 @@ def scrape_books(pages=1):
                 rating = rating_class.split()[-1]
                 book_url = pod.find_element(By.TAG_NAME, "h3").find_element(By.TAG_NAME, "a").get_attribute("href")
                 
-                # Get detail page for description
-                # To keep it fast, we might only scrape a few detail pages
+                image_url = pod.find_element(By.CLASS_NAME, "thumbnail").get_attribute("src")
+                
+                # Navigate to detail page for more info
+                detail_url = book_url
+                
                 books.append({
                     "title": title,
                     "price": price,
                     "rating": rating,
                     "url": book_url,
-                    "description": "Scraped description placeholder", # Real implementation would visit detail page
-                    "author": "Unknown"
+                    "image_url": image_url,
+                    "detail_url": book_url # Temporary storage to fetch later
                 })
+            
+            # Now fetch details for each book
+            for book in books:
+                driver.get(book["detail_url"])
+                time.sleep(1)
+                try:
+                    book["description"] = driver.find_element(By.CSS_SELECTOR, "#product_description + p").text
+                    book["genre"] = driver.find_element(By.CSS_SELECTOR, ".breadcrumb li:nth-child(3) a").text
+                except:
+                    book["description"] = "Metadata synthesis incomplete."
+                    book["genre"] = "Literature"
+                
+                del book["detail_url"] # Cleanup
                 
         return books
     finally:

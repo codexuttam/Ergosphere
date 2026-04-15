@@ -1,122 +1,118 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Send, Eraser, Camera, Flag, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const ChatBox = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your AI Book Assistant. Ask me anything about the books in our collection.", sender: 'bot' }
-  ]);
   const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [latency, setLatency] = useState<number | null>(null);
 
-  const handleSend = async () => {
+  const handleSubmit = async () => {
     if (!input.trim()) return;
     
-    const userMsg = { id: Date.now(), text: input, sender: 'user' };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    const startTime = performance.now();
     setLoading(true);
 
     try {
       const response = await axios.post('http://localhost:8000/api/books/ask/', { question: input });
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        text: response.data.answer, 
-        sender: 'bot',
-        sources: response.data.sources
-      }]);
+      setOutput(response.data.answer);
+      const endTime = performance.now();
+      setLatency(Number(((endTime - startTime) / 1000).toFixed(2)));
     } catch (error) {
-       setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        text: "Sorry, I'm having trouble connecting to the intelligence pipeline. Please ensure the backend is running.", 
-        sender: 'bot' 
-      }]);
+       setOutput("Error connecting to intelligence nodes. Please verify backend status.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClear = () => {
+    setInput('');
+    setOutput('');
+    setLatency(null);
+  };
+
   return (
-    <div className="glass-morphism rounded-3xl flex flex-col h-[600px] overflow-hidden">
-      <div className="p-6 border-b border-indigo-500/20 bg-indigo-600/5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500 rounded-xl">
-            <Bot className="w-6 h-6 text-white" />
+    <div className="flex flex-col gap-6">
+      {/* Dual Pane Interface */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Input Panel */}
+        <div className="glass-morphism rounded-xl overflow-hidden flex flex-col">
+          <div className="px-4 py-2 bg-white/5 border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            INP
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">Insight Assistant</h2>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-xs text-slate-400">RAG Pipeline Connected</span>
+          <div className="p-4 relative h-64">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="This is the beginning of a new journey..."
+              className="w-full h-full bg-transparent border-none text-white focus:outline-none resize-none text-lg font-medium placeholder:text-slate-700"
+            />
+            <div className="absolute bottom-4 right-4 animate-pulse">
+                <div className="w-6 h-6 bg-emerald-500 rounded-full blur-[8px] opacity-40"></div>
+                <div className="w-2 h-2 bg-emerald-400 rounded-full absolute top-2 left-2"></div>
             </div>
           </div>
         </div>
-        <Sparkles className="text-indigo-400 w-5 h-5 animate-bounce" />
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        <AnimatePresence>
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, scale: 0.95, x: msg.sender === 'user' ? 20 : -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-[80%] flex items-start gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`p-2 rounded-lg ${msg.sender === 'user' ? 'bg-indigo-600' : 'bg-slate-800'}`}>
-                  {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                </div>
-                <div className={`p-4 rounded-2xl ${
-                  msg.sender === 'user' 
-                  ? 'bg-indigo-600 text-white rounded-tr-none' 
-                  : 'glass-morphism text-slate-200 rounded-tl-none'
-                }`}>
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
-                  {msg.sender === 'bot' && (msg as any).sources && (
-                    <div className="mt-2 pt-2 border-t border-slate-700">
-                      <p className="text-[10px] text-slate-500 uppercase font-bold">Sources</p>
-                      {(msg as any).sources.map((s: any, i: number) => (
-                        <a key={i} href={s.url} className="text-[10px] text-indigo-400 hover:underline block truncate">
-                            {s.title}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-          {loading && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-               <div className="glass-morphism p-4 rounded-2xl rounded-tl-none flex gap-2">
-                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></span>
-                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+        {/* Output Panel */}
+        <div className="glass-morphism rounded-xl overflow-hidden flex flex-col">
+          <div className="px-4 py-2 bg-white/5 border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            OUTPUT
+          </div>
+          <div className="p-4 h-64 overflow-y-auto">
+            {loading ? (
+               <div className="flex flex-col gap-2">
+                 <div className="h-4 w-3/4 bg-white/5 rounded animate-pulse"></div>
+                 <div className="h-4 w-1/2 bg-white/5 rounded animate-pulse"></div>
+                 <div className="h-4 w-5/6 bg-white/5 rounded animate-pulse"></div>
                </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ) : (
+                <div className="relative h-full">
+                    <p className="text-slate-200 text-lg leading-relaxed font-medium">
+                        {output || "Awaiting intelligence synthesis..."}
+                    </p>
+                    {latency && (
+                        <div className="absolute bottom-0 right-0 flex items-center gap-1.5 text-rose-400 font-mono text-[10px] uppercase font-bold bg-rose-500/5 px-2 py-1 rounded-lg border border-rose-500/10">
+                            <Clock className="w-3 h-3" />
+                            Latency: {latency}s
+                        </div>
+                    )}
+                </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="p-6 bg-slate-900/50">
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about summaries, genres, or recommendations..."
-            className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-6 pr-16 text-white focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-500"
-          />
-          <button 
-            onClick={handleSend}
-            className="absolute right-2 p-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all glow-button"
-          >
-            <Send className="w-5 h-5 text-white" />
-          </button>
-        </div>
+      {/* Button Toolbar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button 
+          onClick={handleClear}
+          className="flex items-center justify-center gap-2 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 font-black text-xs uppercase tracking-widest transition-all"
+        >
+          <Eraser className="w-4 h-4" />
+          Clear
+        </button>
+        
+        <button 
+          onClick={handleSubmit}
+          disabled={loading || !input.trim()}
+          className="flex items-center justify-center gap-2 py-4 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-orange-600/20 col-span-1"
+        >
+          {loading ? "Processing..." : "Submit"}
+          {!loading && <Send className="w-4 h-4" />}
+        </button>
+
+        <button className="flex items-center justify-center gap-2 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 font-black text-xs uppercase tracking-widest transition-all">
+          <Camera className="w-4 h-4" />
+          Screenshot
+        </button>
+
+        <button className="flex items-center justify-center gap-2 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-slate-400 font-black text-xs uppercase tracking-widest transition-all">
+          <Flag className="w-4 h-4" />
+          Flag
+        </button>
       </div>
     </div>
   );
