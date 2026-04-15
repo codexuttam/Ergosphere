@@ -52,6 +52,43 @@ A full-stack application built for the Ergosphere assignment. It features automa
 - `frontend/`: Vite + React + Tailwind CSS project.
 - `scraper/`: Selenium automation scripts.
 - `screenshots/`: Project visuals.
+- `requirements.txt`: Python dependencies.
+
+## 📡 API Documentation
+
+### Book Management
+- `GET /api/books/`: List all cataloged books.
+- `GET /api/books/{id}/`: Retrieve detailed metadata for a single book.
+- `GET /api/books/{id}/recommend/`: Get AI-powered recommendations based on genre and rating.
+- `POST /api/books/bulk_upload/`: Batch upload book data (triggers AI analysis pipeline).
+
+### Intelligent Q&A (RAG)
+- `POST /api/books/ask/`: Query the neural engine.
+- **Payload**: `{"question": "your question here"}`
+- **Response**: Contextual answer retrieved from the vector database with source citations.
+
+## 🧪 Sample Q&A
+- **Q**: "What books are available in the catalog?"
+  - **A**: "We have 20 books in our catalog, including titles like 'A Light in the Attic' and 'Tipping the Velvet'. You can ask me specific questions about their content!"
+- **Q**: "Tell me about Sapiens."
+  - **A**: "Sapiens: A Brief History of Humankind by Yuval Noah Harari explores the history of our species, focusing on biological and historical processes that shaped us. It has a Positive sentiment rating."
+
+## 🛠️ Testing Samples
+To test the bulk upload API, use the following sample JSON:
+```json
+[
+  {
+    "title": "Sample Book",
+    "author": "Test Author",
+    "description": "A fascinating journey through neural networks.",
+    "price": "£10.00",
+    "rating": "Five",
+    "url": "http://example.com",
+    "image_url": "http://example.com/image.png",
+    "genre": "Science"
+  }
+]
+```
 
 ## 📸 Screenshots
 
